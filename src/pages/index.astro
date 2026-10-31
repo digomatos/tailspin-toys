@@ -103,6 +103,7 @@ const [games, categories, publishers] = await Promise.all([
     const empty = document.getElementById('filter-empty');
     const status = document.getElementById('filter-status');
 
+    /** Shows or hides cards based on the current form state and updates the status message. */
     const apply = (): void => {
       const categoryIds = Array.from(
         form.querySelectorAll<HTMLInputElement>('input[name="category"]:checked'),

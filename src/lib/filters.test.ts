@@ -3,6 +3,7 @@ import { cardMatchesFilters } from './filters';
 
 const card = { categoryId: '1', publisherId: '2' };
 
+/** Unit tests for the client-side filter matching logic. */
 describe('cardMatchesFilters', () => {
     it('matches everything with no filters', () => {
         expect(cardMatchesFilters(card, { categoryIds: [], publisherId: '' })).toBe(true);

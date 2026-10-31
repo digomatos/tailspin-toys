@@ -50,6 +50,7 @@ function baseGamesQuery(db: Database) {
         .leftJoin(publishers, eq(games.publisherId, publishers.id));
 }
 
+/** Optional filters for {@link getAllGames}. */
 export interface GameFilters {
     /** Match games in any of these categories. Empty/undefined means no category filter. */
     categoryIds?: number[];
@@ -57,7 +58,13 @@ export interface GameFilters {
     publisherId?: number;
 }
 
-/** All games ordered by title, optionally filtered by category and/or publisher (combined with AND). */
+/**
+ * Lists games ordered by title, optionally filtered by category and/or publisher (combined with AND).
+ *
+ * @param db - The database to query.
+ * @param filters - Optional category/publisher filters.
+ * @returns The matching games.
+ */
 export async function getAllGames(db: Database, filters: GameFilters = {}): Promise<Game[]> {
     const conditions: SQL[] = [];
     if (filters.categoryIds && filters.categoryIds.length > 0) {
@@ -72,7 +79,12 @@ export async function getAllGames(db: Database, filters: GameFilters = {}): Prom
     return rows.map(mapGame);
 }
 
-/** All categories ordered by name. */
+/**
+ * Lists all categories ordered by name.
+ *
+ * @param db - The database to query.
+ * @returns All categories.
+ */
 export async function getAllCategories(db: Database): Promise<Category[]> {
     return db
         .select({ id: categories.id, name: categories.name })
@@ -80,7 +92,12 @@ export async function getAllCategories(db: Database): Promise<Category[]> {
         .orderBy(asc(categories.name));
 }
 
-/** All publishers ordered by name. */
+/**
+ * Lists all publishers ordered by name.
+ *
+ * @param db - The database to query.
+ * @returns All publishers.
+ */
 export async function getAllPublishers(db: Database): Promise<Publisher[]> {
     return db
         .select({ id: publishers.id, name: publishers.name })

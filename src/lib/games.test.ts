@@ -66,6 +66,7 @@ describe('games data-access helpers', () => {
         expect(await getGameById(db, 99999)).toBeNull();
     });
 
+    /** Filtering helpers: category, publisher, combined, and list queries. */
     describe('filtering', () => {
         let catA: number, catB: number, pubX: number, pubY: number;
 
@@ -91,6 +92,12 @@ describe('games data-access helpers', () => {
             ]);
         });
 
+        /**
+         * Extracts titles from a list of games.
+         *
+         * @param list - Games to read titles from.
+         * @returns The titles, in order.
+         */
         const titles = (list: { title: string }[]): string[] => list.map((g) => g.title);
 
         it('filters by one or more categories', async () => {

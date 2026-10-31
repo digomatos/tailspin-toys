@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 
+/** E2E tests for the home page category and publisher filters. */
 test.describe('Game filters', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
