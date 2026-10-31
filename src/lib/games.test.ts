@@ -6,6 +6,8 @@ import {
     getAllGames,
     getAllGameIds,
     getGameById,
+    getAllCategories,
+    getAllPublishers,
 } from './games';
 
 async function seedGames(db: Database, count: number): Promise<void> {
@@ -62,5 +64,63 @@ describe('games data-access helpers', () => {
     it('returns null for a non-existent game', async () => {
         await seedGames(db, 2);
         expect(await getGameById(db, 99999)).toBeNull();
+    });
+
+    /** Filtering helpers: category, publisher, combined, and list queries. */
+    describe('filtering', () => {
+        let catA: number, catB: number, pubX: number, pubY: number;
+
+        beforeEach(async () => {
+            [{ id: catA }, { id: catB }] = await db
+                .insert(categories)
+                .values([
+                    { name: 'Alpha', description: 'a' },
+                    { name: 'Beta', description: 'b' },
+                ])
+                .returning({ id: categories.id });
+            [{ id: pubX }, { id: pubY }] = await db
+                .insert(publishers)
+                .values([
+                    { name: 'Pub X', description: 'x' },
+                    { name: 'Pub Y', description: 'y' },
+                ])
+                .returning({ id: publishers.id });
+            await db.insert(games).values([
+                { title: 'G1', description: 'd', categoryId: catA, publisherId: pubX },
+                { title: 'G2', description: 'd', categoryId: catA, publisherId: pubY },
+                { title: 'G3', description: 'd', categoryId: catB, publisherId: pubX },
+            ]);
+        });
+
+        /**
+         * Extracts titles from a list of games.
+         *
+         * @param list - Games to read titles from.
+         * @returns The titles, in order.
+         */
+        const titles = (list: { title: string }[]): string[] => list.map((g) => g.title);
+
+        it('filters by one or more categories', async () => {
+            expect(titles(await getAllGames(db, { categoryIds: [catA] }))).toEqual(['G1', 'G2']);
+            expect(titles(await getAllGames(db, { categoryIds: [catA, catB] }))).toEqual(['G1', 'G2', 'G3']);
+        });
+
+        it('filters by publisher', async () => {
+            expect(titles(await getAllGames(db, { publisherId: pubX }))).toEqual(['G1', 'G3']);
+        });
+
+        it('combines category and publisher filters', async () => {
+            expect(titles(await getAllGames(db, { categoryIds: [catB], publisherId: pubX }))).toEqual(['G3']);
+            expect(await getAllGames(db, { categoryIds: [catB], publisherId: pubY })).toEqual([]);
+        });
+
+        it('treats empty filters as no filter', async () => {
+            expect(await getAllGames(db, { categoryIds: [] })).toHaveLength(3);
+        });
+
+        it('lists categories and publishers ordered by name', async () => {
+            expect((await getAllCategories(db)).map((c) => c.name)).toEqual(['Alpha', 'Beta']);
+            expect((await getAllPublishers(db)).map((p) => p.name)).toEqual(['Pub X', 'Pub Y']);
+        });
     });
 });
